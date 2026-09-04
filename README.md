@@ -26,8 +26,6 @@ Chibi Companion is a small macOS app designed to bring an animated companion dir
 
 **macOS only.**
 
-Open the DMG and drag Chibi Companion into the Applications folder.
-
 💻 Requirements
 
 * macOS
