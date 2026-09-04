@@ -18,7 +18,6 @@ Chibi Companion is a small macOS app designed to bring an animated companion dir
 
 ![Image alt](https://github.com/PurohitBhagyesh/ChibiCompanion-macApp/blob/6ed04c869f346d6ef134402ca6dc43f9ed622e13/screenshot.png)
 
-📦 Download
 
 ## 📦 Download
 
