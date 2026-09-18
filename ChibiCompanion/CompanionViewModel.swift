@@ -24,8 +24,16 @@ public class CompanionViewModel: ObservableObject {
     @Published public var currentState: CompanionState = .idle
     @Published public var position: CGPoint = CGPoint(x: 200, y: 200)
     @Published public var isFacingRight: Bool = true
-    @Published public var movementSpeed: MovementSpeed = .normal
-    @Published public var isSoundEnabled: Bool = true
+    @Published public var movementSpeed: MovementSpeed = .normal {
+        didSet {
+            UserDefaults.standard.set(movementSpeed.rawValue, forKey: userDefaultsSpeedKey)
+        }
+    }
+    @Published public var isSoundEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(isSoundEnabled, forKey: userDefaultsSoundKey)
+        }
+    }
     @Published public var currentFrameIndex: Int = 0
 
     private var timer: Timer?
@@ -35,20 +43,39 @@ public class CompanionViewModel: ObservableObject {
     private let interactionDistance: CGFloat = 30.0
 
     private var wanderTarget: CGPoint?
-    private var idleTicks: Int = 0
+    public private(set) var idleTicks: Int = 0
     private let idleSleepThreshold: Int = 600 // ~10 seconds at 60 FPS
 
+    private let userDefaultsSpeedKey = "MovementSpeed"
+    private let userDefaultsSoundKey = "IsSoundEnabled"
+
     public init() {
+        if let savedSpeed = UserDefaults.standard.object(forKey: userDefaultsSpeedKey) as? Double,
+           let speed = MovementSpeed(rawValue: savedSpeed) {
+            self.movementSpeed = speed
+        }
+        if UserDefaults.standard.object(forKey: userDefaultsSoundKey) != nil {
+            self.isSoundEnabled = UserDefaults.standard.bool(forKey: userDefaultsSoundKey)
+        }
         setupTimers()
     }
 
     deinit {
+        stopTimers()
+    }
+
+    /// Stops active timers.
+    public func stopTimers() {
         timer?.invalidate()
+        timer = nil
         animationTimer?.invalidate()
+        animationTimer = nil
     }
 
     /// Sets up update loop for behavior and animation frame updates.
-    private func setupTimers() {
+    public func setupTimers() {
+        stopTimers()
+
         // Main movement and logic loop (60 FPS)
         timer = Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.update()
@@ -148,7 +175,7 @@ public class CompanionViewModel: ObservableObject {
     }
 
     /// Cycle through sprite animation frames based on current state.
-    private func updateAnimationFrame() {
+    public func updateAnimationFrame() {
         currentFrameIndex = (currentFrameIndex + 1) % 4
     }
 
