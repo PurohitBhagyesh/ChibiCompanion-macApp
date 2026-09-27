@@ -13,6 +13,8 @@ final class CompanionViewModelTests: XCTestCase {
     override func tearDown() {
         viewModel.stopTimers()
         viewModel = nil
+        UserDefaults.standard.removeObject(forKey: "MovementSpeed")
+        UserDefaults.standard.removeObject(forKey: "IsSoundEnabled")
         super.tearDown()
     }
 
@@ -63,5 +65,44 @@ final class CompanionViewModelTests: XCTestCase {
     func testHandleTapTransitionsToPlaying() {
         viewModel.handleTap()
         XCTAssertEqual(viewModel.currentState, .playing)
+    }
+
+    func testMovementSpeedPersistence() {
+        viewModel.movementSpeed = .fast
+        XCTAssertEqual(UserDefaults.standard.double(forKey: "MovementSpeed"), MovementSpeed.fast.rawValue)
+        
+        let newVM = CompanionViewModel()
+        newVM.stopTimers()
+        XCTAssertEqual(newVM.movementSpeed, .fast)
+    }
+
+    func testIsSoundEnabledPersistence() {
+        viewModel.isSoundEnabled = false
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: "IsSoundEnabled"))
+        
+        let newVM = CompanionViewModel()
+        newVM.stopTimers()
+        XCTAssertFalse(newVM.isSoundEnabled)
+    }
+
+    func testIdleTransitionToSleepingWhenTicksExceedThreshold() {
+        viewModel.currentState = .idle
+        viewModel.position = CGPoint(x: 10000, y: 10000)
+        
+        for _ in 0...600 {
+            viewModel.update()
+        }
+        
+        XCTAssertEqual(viewModel.currentState, .sleeping)
+    }
+
+    func testSleepingWakeUpWhenMouseIsClose() {
+        viewModel.currentState = .sleeping
+        let mouseLocation = NSEvent.mouseLocation
+        viewModel.position = CGPoint(x: mouseLocation.x + 10, y: mouseLocation.y + 10)
+        
+        viewModel.update()
+        
+        XCTAssertEqual(viewModel.currentState, .idle)
     }
 }
