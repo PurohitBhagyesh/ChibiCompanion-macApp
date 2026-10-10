@@ -21,7 +21,13 @@ public enum MovementSpeed: Double, CaseIterable, Codable {
 
 /// ViewModel responsible for managing companion state, desktop movement, and user interactions.
 public class CompanionViewModel: ObservableObject {
-    @Published public var currentState: CompanionState = .idle
+    @Published public var currentState: CompanionState = .idle {
+        didSet {
+            if oldValue != currentState {
+                currentFrameIndex = 0
+            }
+        }
+    }
     @Published public var position: CGPoint = CGPoint(x: 200, y: 200)
     @Published public var isFacingRight: Bool = true
     @Published public var movementSpeed: MovementSpeed = .normal {
@@ -196,6 +202,10 @@ public class CompanionViewModel: ObservableObject {
 
     /// Plays companion feedback audio.
     private func playSoundEffect() {
-        NSSound.beep()
+        if let sound = NSSound(named: NSSound.Name("Tink")) {
+            sound.play()
+        } else {
+            NSSound.beep()
+        }
     }
 }

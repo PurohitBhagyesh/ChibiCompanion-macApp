@@ -62,6 +62,15 @@ final class CompanionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.currentFrameIndex, 0)
     }
 
+    func testStateChangeResetsAnimationFrameIndex() {
+        viewModel.updateAnimationFrame()
+        viewModel.updateAnimationFrame()
+        XCTAssertEqual(viewModel.currentFrameIndex, 2)
+        
+        viewModel.currentState = .walking
+        XCTAssertEqual(viewModel.currentFrameIndex, 0)
+    }
+
     func testHandleTapTransitionsToPlaying() {
         viewModel.handleTap()
         XCTAssertEqual(viewModel.currentState, .playing)
@@ -98,6 +107,26 @@ final class CompanionViewModelTests: XCTestCase {
 
     func testSleepingWakeUpWhenMouseIsClose() {
         viewModel.currentState = .sleeping
+        let mouseLocation = NSEvent.mouseLocation
+        viewModel.position = CGPoint(x: mouseLocation.x + 10, y: mouseLocation.y + 10)
+        
+        viewModel.update()
+        
+        XCTAssertEqual(viewModel.currentState, .idle)
+    }
+
+    func testWalkingTransitionsToChasingCursorWhenMouseIsNear() {
+        viewModel.currentState = .walking
+        let mouseLocation = NSEvent.mouseLocation
+        viewModel.position = CGPoint(x: mouseLocation.x + 100, y: mouseLocation.y + 100)
+        
+        viewModel.update()
+        
+        XCTAssertEqual(viewModel.currentState, .chasingCursor)
+    }
+
+    func testChasingCursorTransitionsToIdleWhenClose() {
+        viewModel.currentState = .chasingCursor
         let mouseLocation = NSEvent.mouseLocation
         viewModel.position = CGPoint(x: mouseLocation.x + 10, y: mouseLocation.y + 10)
         
